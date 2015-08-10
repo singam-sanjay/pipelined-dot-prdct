@@ -1,0 +1,1 @@
+This project is an attempt to write a CUDA kernel which helps in finding the eucledian distance 15x-16x times compared to cuBLAS { axpy();dot() }
