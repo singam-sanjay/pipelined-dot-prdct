@@ -1,6 +1,7 @@
 #include<iostream>
 #include<cstdlib>
 #include"cublas_v2.h"
+#include"func.h"
 
 using namespace std;
 typedef float TYPE;
