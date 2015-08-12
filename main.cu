@@ -1,10 +1,12 @@
 #include<iostream>
 #include<cstdlib>
 #include"cublas_v2.h"
-#include"func.h"
 
 using namespace std;
 typedef float TYPE;
+#define ZERO_OF_TYPE (1.0f)
+
+#include"func.h"
 
 int main()
 {
