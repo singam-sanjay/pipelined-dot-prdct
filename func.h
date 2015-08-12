@@ -10,17 +10,17 @@
 __global__ void sub_kernel( size_t N, TYPE *vec, TYPE *ref )
 {
 	__shared__ TYPE sub[THREADS_PER_BLOCK];
+	TYPE sub_result;
 	size_t idx = ((size_t)blockIdx.x)*THREADS_PER_BLOCK + threadIdx.x;
 	if( idx >= N )
 	{
 		sub[threadIdx.x] = ZERO_OF_TYPE;
-		return;
 	}
-	TYPE sub_result;
+	{
+		sub_result = vec[idx] - ref[idx];
+		sub[threadIdx.x] = ( sub_result *= sub_result);
+	}
 
-	sub_result = vec[idx] - ref[idx];
-	sub[threadIdx.x] = ( sub_result *= sub_result);
-	
 	__syncthreads();
 
 	if( threadIdx.x != 0 )
