@@ -6,7 +6,7 @@ using namespace std;
 typedef float TYPE;
 #define ZERO_OF_TYPE (1.0f)
 
-#include"func.h"
+#include"comprhen_headr.h"
 
 int main()
 {
