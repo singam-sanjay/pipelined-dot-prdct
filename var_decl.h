@@ -7,6 +7,9 @@ std::stringstream err_sstr;
 #include"cublas_v2.h"
 cublasHandle_t handle;
 
+/* Sizes */
+size_t k = 0, // Number of rows
+       N = 0; // dimension of vector
 
 /* CPU variables */
 TYPE *cpu_vec = nullptr, // Vector in RAM
@@ -20,4 +23,3 @@ TYPE *gpu_vec = nullptr,     // Vector on the GPU
      *gpu_wrk_mat = nullptr, // Matrix on the GPU, worked/operated upon
      *gpu_rep_mat = nullptr, // Matrix on the GPU, replica of cpu_mat, used to initialise gpu_wrk_mat before every operation
      *gpu_res = nullptr;     // Result on the GPU
-
