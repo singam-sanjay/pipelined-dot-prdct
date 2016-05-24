@@ -1,7 +1,12 @@
 /* DESC */
 typedef double TYPE;
-SCANF_FORMAT_STRING "%lf"
-PRINTF_FORMAT_STRING SCANF_FORMAT_STRING
+#define SCANF_FORMAT_STRING ("%lf")
+#define PRINTF_FORMAT_STRING (SCANF_FORMAT_STRING)
+
+//#if __cplusplus > 199711L // Make this work at a later time.
+	#define nullptr (NULL)
+//#endif
+
 
 /* Figuring out the environment */
 #if __x86_64__ || _WIN64 //Probably add other 64-bit architectures for which we have nvcc

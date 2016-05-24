@@ -30,7 +30,7 @@ void setup_math_func_env();
 
 /* Math functions */
 
-seq();
-par_OpenMP();
-par_dyn_parll();
-pipelined();
+void seq();
+void par_OpenMP();
+void par_dyn_parll();
+void pipelined();
