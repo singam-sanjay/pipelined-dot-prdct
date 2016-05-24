@@ -11,6 +11,10 @@ PRINTF_FORMAT_STRING SCANF_FORMAT_STRING
 #endif
 
 /* CUDA Compute Capability 3.5 */
+#define MAX_THREADS_PER_MP (2048)
+#define MAX_BLOCKS_PER_MP  (16)
+#define MAX_THREADS_PER_BLOCK (1024)
+/*-----------------------------*/
 #ifdef __CUDA_ARCH__
 	#if __CUDA_ARCH__ == 350
 	#else
