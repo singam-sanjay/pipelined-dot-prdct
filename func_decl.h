@@ -15,9 +15,11 @@ void free_mem_GPU();
 
 void ld__frm_file_to_CPU();
 void ld__frm_CPU_to_GPU();
+void rp__frm_rplca_to_wrkspc_on_GPU();
+#ifdef DEBUG
 void wb__to_CPU_frm_GPU();
 void wb__to_file_frm_CPU();
-void rp__frm_rplca_to_wrkspc();
+#endif
 
 /* cuBLAS Paperwork */
 
