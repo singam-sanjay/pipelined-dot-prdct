@@ -31,6 +31,8 @@ void ld__frm_file_to_CPU( const char * dataset )
   #undef ld_cpu_MACRO
 }
 
+void __cudaMemcpy_wrapper( TYPE* dest, TYPE *src, int num_bytes, enum cudaMemcpyKind kind );
+
 void __ld_CPU_to_GPU( TYPE* d_vec, TYPE* vec, size_t bytes, const char* var_name, const char* d_var_name )
 {
 	cudaError_t stat;
