@@ -3,7 +3,8 @@
 void cmdln_usage_help(); // Displays command line usage
 #define throw_str_excptn() {throw err_sstr.str();} // Throws a string containing a cumulative exceptional behaviour inside a function
 void rst_err_sstr();     // Resets err_sstr to an empty string to make it ready for a different function.
-void extrct_and_verify_cmdln_args( char *files[], int num_files ); // Add description
+void verify_cmdln_args( char *files[], int num_files ); // Add description
+bool extract_RandC_from_fname( const char *f_name, int *ptr_R, int *ptr_C ); // Add description
 
 /* Alloc and Free functions */
 

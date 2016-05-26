@@ -11,7 +11,20 @@ void cmdln_usage_help()
 
 
 #include <cstdio>
-void extrct_and_verify_cmdln_args( char *files[], int num_files )
+
+bool extract_RandC_from_fname( const char *f_name, int *ptr_R, int *ptr_C )
+{
+  int R,C;
+  if( sscanf(f_name,"full_%ix%i.bin",&R,&C)!=2 || sscanf(f_name,"sp_%ix%i.bin",&R,&C)!=2 )
+  {
+    return false;
+  }
+  *ptr_R = R;
+  *ptr_C = C;
+  return true;
+}
+
+void verify_cmdln_args( char *files[], int num_files )
 {
   FILE *f;fpos_t size;
   itn R, C;
@@ -37,7 +50,7 @@ void extrct_and_verify_cmdln_args( char *files[], int num_files )
       err_sstr << __func__ << "::fgetpos failed to process " << files[f_iter] << '\n';
       goto clse;
     }
-    if( sscanf(files[f_iter],"full_%ix%i.bin",&R,&C)!=2 || sscanf(files[f_iter],"sp_%ix%i.bin",&R,&C)!=2 ) // 2 since 2 arguments need to be assigned
+    if( extract_RandC_from_fname(files[f_iter],&R,&C)==false ) // 2 since 2 arguments need to be assigned
     {
       got_error = true;
       err_sstr << __func__ << "::sscanf failed to parse " << files[f_ter] << '\n';
@@ -54,4 +67,45 @@ clse:fclose(f);
   {
     throw_str_excptn();
   }
+}
+
+void cub_init()
+{
+	 cublasStatus_t status;
+         status = cublasCreate( &handle );
+	 if( status!=CUBLAS_STATUS_SUCCESS )
+	 {
+		 err_str << __func__ << ": ";
+	 }
+	 else
+	 {
+		 return;
+	 }
+	 switch( status )
+	 {
+		 case CUBLAS_STATUS_NOT_INITIALIZED: err_str << "The CUDA TM Runtime initialization failed\n";break;
+		 case CUBLAS_STATUS_ALLOC_FAILED: err_str << "The resources could not be allocated\n";break;
+		 default:                         err_str << "Got something else\n";break;
+	 }
+	 throw_str_excptn();
+}
+
+void cub_wrapup()
+{
+	 cublasStatus_t status;
+         status = cublasDestroy( handle );
+	 if( status!=CUBLAS_STATUS_SUCCESS )
+	 {
+		 err_str << __func__ << ": ";
+	 }
+	 else
+	 {
+		 return;
+	 }
+	 switch( status )
+	 {
+		 case CUBLAS_STATUS_NOT_INITIALIZED: err_str << "The library was not initialized\n";
+		 default:                         err_str << "Got something else\n";
+	 }
+	 throw_str_excptn();
 }

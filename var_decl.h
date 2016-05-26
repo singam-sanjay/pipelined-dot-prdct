@@ -8,8 +8,8 @@ std::stringstream err_sstr;
 cublasHandle_t handle;
 
 /* Sizes */
-size_t k = 0, // Number of rows
-       N = 0; // dimension of vector
+int k = 0, // Number of rows
+    N = 0; // dimension of vector
 
 /* CPU variables */
 TYPE *cpu_vec = nullptr, // Vector in RAM
