@@ -1,7 +1,7 @@
 /* Load and Write Functions */
 #include <fstream>
 
-void ld_data_frm_binfile( const char *file_name, size_t offset, const char *var_name, TYPE *ptr, size_t num, int line )
+void __ld_data_frm_binfile( const char *file_name, size_t offset, const char *var_name, TYPE *ptr, size_t num, int line )
 {
   try
   {
@@ -25,7 +25,7 @@ void ld_data_frm_binfile( const char *file_name, size_t offset, const char *var_
 
 void ld__frm_file_to_CPU( const char * dataset, const char * computed_result = NULL )
 {
-  #define ld_cpu_MACRO(file,offset,var,size) { ld_data_frm_binfile(file,offset,#var,var,size,__LINE__); }
+  #define ld_cpu_MACRO(file,offset,var,size) { __ld_data_frm_binfile(file,offset,#var,var,size,__LINE__); }
   ld_cpu_MACRO(dataset, 0,cpu_vec,1*N);
   ld_cpu_MACRO(dataset,+N,cpu_mat,k*N);
   #ifdef DEBUG
@@ -36,58 +36,30 @@ void ld__frm_file_to_CPU( const char * dataset, const char * computed_result = N
 
 #include "cublas_v2.h"
 
-void ld_GPU_vec( TYPE* d_vec, TYPE* vec, size_t bytes, const char* var_name, const char* d_var_name )
+void __ld_CPU_to_GPU( TYPE* d_vec, TYPE* vec, size_t bytes, const char* var_name, const char* d_var_name )
 {
-	cublasStatus_t stat;
-	stat = cublasSetVector( bytes,sizeof(TYPE),vec,1,d_vec,1 );
-	if( stat!=CUBLAS_STATUS_SUCCESS )
+	cudaError_t stat;
+	stat = cudaMemcpy( d_vec, vec, bytes, cudaMemcpyHostToDevice  );
+	if( stat==cudaSuccess )
 	{
-		err_sstr << "ld__frm_CPU_to_GPU::" << var_name << "->" << d_var_name << "::";
-    switch( stat )
-    {
-      case CUBLAS_STATUS_NOT_INITIALIZED: err_sstr << "The library was not initialized.\n";break;
-      case CUBLAS_STATUS_INVALID_VALUE: err_sstr << "The parameters incx , incy , elemSize<=0\n";break;
-      case CUBLAS_STATUS_MAPPING_ERROR: err_sstr << "There was an error accessing GPU memory\n";break;
-      default:			  err_sstr << "Got something else\n";break;
-    }
-    throw_str_excptn();
-	}
-	else
-	{
-		return;
-	}
-}
-
-void ld_GPU_mat( TYPE* d_mat, TYPE* mat, size_t rows, size_t cols, const char* var_name, const char* d_var_name )
-{
-	cublasStatus_t stat;
-	stat = cublasSetMatrix( rows,cols,sizeof(TYPE),mat,rows,d_mat,rows );
-	if( stat!=CUBLAS_STATUS_SUCCESS )
-	{
-		err_sstr << "ld__frm_CPU_to_GPU::" << var_name << "->" << d_var_name << "::";
-    switch( stat )
-    {
-      case CUBLAS_STATUS_NOT_INITIALIZED: err_sstr << "The library was not initialized.\n";break;
-      case CUBLAS_STATUS_INVALID_VALUE: err_sstr << "The parameters rows, cols<0 or elemSize, lda, ldb<=0\n";break;
-      case CUBLAS_STATUS_MAPPING_ERROR: err_sstr << "There was an error accessing GPU memory\n";break;
-      default:			  err_sstr << "Got something else\n";break;
-    }
-    throw_str_excptn();
-	}
-	else
-	{
-		return;
-	}
+    return;
+  }
+	err_sstr << "ld__frm_CPU_to_GPU::" << var_name << "->" << d_var_name << "::";
+  switch( stat )
+  {
+    case cudaErrorInvalidValue : err_sstr << "parameters passed to the API call is not within an acceptable range of values.\n";break;
+    case cudaErrorInvalidDevicePointer : err_sstr << "at least one device pointer passed to the API call is not a valid device pointer\n";break;
+    case cudaErrorInvalidMemcpyDirection 	 : err_sstr << "direction of the memcpy passed to the API call is not one of the types specified by cudaMemcpyKind\n";break;
+  }
+  throw_str_excptn();
 }
 
 void ld__frm_CPU_to_GPU()
 {
-  #define ld_GPU_vec_MACRO( d_var,var,bytes ) { ld_GPU_vec( d_var,var,bytes,#var,#d_var ); }
-  #define ld_GPU_mat_MACRO( d_var,var,rows,cols ) { ld_GPU_mat( d_var,var,rows,cols,#var,#d_var ); }
-  ld_GPU_vec_MACRO( gpu_vec,cpu_vec,N );
-  ld_GPU_mat_MACRO( gpu_rep_mat,cpu_mat,k,N );
-  #undef ld_GPU_mat_MACRO
-  #undef ld_GPU_mat_MACRO
+  #define ld_GPU_dat_MACRO( d_var,var,bytes ) { __ld_CPU_to_GPU( d_var,var,bytes,#var,#d_var ); }
+  ld_GPU_dat_MACRO( gpu_vec,cpu_vec,N );
+  ld_GPU_dat_MACRO( gpu_rep_mat,cpu_mat,(k*N) );
+  #undef ld_GPU_dat_MACRO
 }
 
 void rp__frm_rplca_to_wrkspc_on_GPU()
