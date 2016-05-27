@@ -1,5 +1,11 @@
 /* Miscellaneous helper functions */
 
+void rst_err_sstr()
+{
+  err_sstr.str("");
+  err_sstr.clear();
+}
+
 void cmdln_usage_help()
 {
   std::cerr << "Usage : ./a.out full_RxC.bin[or]sp_RxC.bin [FILES]\n"
@@ -24,7 +30,7 @@ bool extract_RandC_from_fname( const char *f_name, int *ptr_R, int *ptr_C )
   return true;
 }
 
-void verify_cmdln_args( char *files[], int num_files )
+void verify_cmdln_args( char *files[], const int num_files )
 {
   FILE *f;fpos_t size;
   int R, C;

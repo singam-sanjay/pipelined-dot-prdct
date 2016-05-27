@@ -1,46 +1,107 @@
 #define ZERO_OF_TYPE (1.0f)
 
 #include"comprhen_headr.h"
+
 using namespace std;
 
-int main()
+int main(int argc, char *argv[] )
 {
-	size_t N;
-	cout << "N:";cin >> N;
+	if( argc<2 )
+	{
+		cmdln_usage_help();
+		return EXIT_FAILURE;
+	}
 
-	TYPE *arr,*d_arr;
+	char **files = argv+1;
+	const int num_files = argc-1;
+	try
+	{
+		verify_cmdln_args( files, num_files );
+	}
+	catch(string _err_str)
+	{
+		cerr << _err_str;
+		return EXIT_FAILURE;
+	}
+
+	int status = EXIT_SUCCESS;
+	try
+	{
+		alloc_mem_CPU();
+		alloc_mem_GPU();
+		cub_init();
+	}
+	catch(string _err_str )
+	{
+		status = EXIT_FAILURE;
+		cerr << _err_str;
+		rst_err_sstr();
+		goto _mem_wrapup_;
+	}
+
+	for( int f_iter=0 ; f_iter<num_files ; ++f_iter )
+	{
+		try
+		{
+			extract_RandC_from_fname(files[f_iter],&k,&N);
+			k = k-1;// Need to exclude 'feature' vector
+			ld__frm_file_to_CPU(files[f_iter]);
+			ld__frm_CPU_to_GPU();
+			/* Math functions */
+			/* Optinal write back of results for verification */
+			#ifdef DEBUG
+			wb__to_CPU_frm_GPU();
+			char res_file[strlen(files[f_iter])+4];
+			sprintf(res_file,"res_%s",files[f_iter]);
+			wb__to_file_frm_CPU(res_file);
+			#endif
+		}
+		catch( string err_str )
+		{
+			status = EXIT_FAILURE;
+			cerr << err_str << "\nFailed to process " << files[f_iter] << ".\n";
+			rst_err_sstr();
+			continue;
+		}
+	}
+
+_cub_wrapup_:
+	try
+	{
+		cub_wrapup();
+	}
+	catch( string err_str )
+	{
+		status = EXIT_FAILURE;
+		cerr << err_str;
+		rst_err_sstr();
+	}
+
+_mem_wrapup_:
+	try
+	{
+		free_mem_GPU();
+	}
+	catch( string err_str )
+	{
+		status = EXIT_FAILURE;
+		cerr << err_str;
+		rst_err_sstr();
+		status = EXIT_FAILURE;
+	}
+
 
 	try
 	{
-		arr = new TYPE[N];
+		free_mem_CPU();
 	}
-	catch(exception e)
+	catch( string err_str )
 	{
-		cerr << "Unable to allocate mem for arr: " << e.what() << '\n';
-		return EXIT_FAILURE;
+		status = EXIT_FAILURE;
+		cerr << err_str;
+		rst_err_sstr();
+		status = EXIT_FAILURE;
 	}
 
-	if( cudaMalloc( &d_arr,sizeof(TYPE)*N )!=cudaSuccess )
-	{
-		cerr << "Unable to allocate d_arr :" << cudaGetErrorString( cudaGetLastError() ) << '\n';
-		return EXIT_FAILURE;
-	}
-
-	if( cudaFree( d_arr )!=cudaSuccess )
-	{
-		cerr << "Unable to deallocate mem for d_arr: " << cudaGetErrorString( cudaGetLastError() ) << '\n';
-		return EXIT_FAILURE;
-	}
-
-	try
-	{
-		delete [] arr;
-	}
-	catch(exception e)
-	{
-		cerr << "Unable to deallocate mem for arr: " << e.what() << '\n';
-		return EXIT_FAILURE;
-	}
-
-	return EXIT_SUCCESS;
+	return status;
 }
