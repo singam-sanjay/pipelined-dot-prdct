@@ -10,6 +10,7 @@ cublasHandle_t handle;
 /* Sizes */
 int k = 0, // Number of rows
     N = 0; // dimension of vector
+int max_k = 0, max_N = 0; // Maximum possible dimensions
 
 /* CPU variables */
 TYPE *cpu_vec = nullptr, // Vector in RAM

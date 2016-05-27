@@ -39,10 +39,10 @@ bool handled_delete( TYPE *loc, const char *var_name, int line )
 void alloc_mem_CPU()
 {
   #define alloc_CPU_MACRO(var,size) { var = handled_new( sizeof(TYPE)*size,#var,__LINE__); }
-  alloc_CPU_MACRO(cpu_vec,N);
-  alloc_CPU_MACRO(cpu_mat,k*N);
+  alloc_CPU_MACRO(cpu_vec,max_N);
+  alloc_CPU_MACRO(cpu_mat,max_k*max_N);
   #ifdef DEBUG
-  alloc_CPU_MACRO(cpu_res,k);
+  alloc_CPU_MACRO(cpu_res,max_k);
   #endif
   #undef alloc_CPU_MACRO
 }
@@ -90,10 +90,10 @@ bool handled_cudaFree( TYPE* d_ptr, const char* var_name, int line )
 void alloc_mem_GPU()
 {
 	#define alloc_GPU_MACRO(var,size) { var = handled_cudaMalloc( sizeof(TYPE)*size,#var,__LINE__); }
-	alloc_GPU_MACRO(gpu_vec,N);
-	alloc_GPU_MACRO(gpu_wrk_mat,k*N);
-	alloc_GPU_MACRO(gpu_rep_mat,k*N);
-	alloc_GPU_MACRO(gpu_res,k);
+	alloc_GPU_MACRO(gpu_vec,max_N);
+	alloc_GPU_MACRO(gpu_wrk_mat,max_k*max_N);
+	alloc_GPU_MACRO(gpu_rep_mat,max_k*max_N);
+	alloc_GPU_MACRO(gpu_res,max_k);
 	#undef alloc_GPU_MACRO
 }
 
