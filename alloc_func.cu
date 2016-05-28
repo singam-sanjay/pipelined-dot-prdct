@@ -68,7 +68,7 @@ TYPE* handled_cudaMalloc( size_t bytes, const char* var_name, int line )
 		case cudaSuccess :break;
 		case cudaErrorMemoryAllocation: err_sstr << "alloc_mem_GPU():" << line << ": Failed to allocate " << var_name << '\n';
 						throw_str_excptn();
-		default: err_sstr << "alloc_mem_GPU():" << line << ": Received unknown error while allocating " << var_name << '\n';
+		default: err_sstr << "alloc_mem_GPU()::" << line << "::Unknown error while allocating " << var_name << ".\n";
 			 			throw_str_excptn();
 	}
 	return d_ptr;
@@ -83,6 +83,8 @@ bool handled_cudaFree( TYPE* d_ptr, const char* var_name, int line )
 						   return true;
 		case cudaErrorInitializationError:err_sstr << "free_mem_GPU():" << line << ":Failed to init CUDA runtime and driver while freeing "<< var_name << '\n';
 						  return true;
+		default : err_sstr << "free_mem_GPU()::" << line << "::Unknown error while freeing " << var_name << ".\n";
+							return true;
 	}
 	return false;
 }

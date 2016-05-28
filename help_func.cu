@@ -68,7 +68,7 @@ void verify_cmdln_args( char *files[], const int num_files )
       err_sstr << __func__ << "::R<2 or C<1 in " << files[f_iter] << '\n';
       goto clse;
     }
-    if( size.__pos != sizeof(TYPE)*R*C )
+    if( size.__pos != sizeof(TYPE)*R*C ) // Warning : size.__pos is long (signed), sizeof(TYPE)*R*C is size_t (unsigned, uint{64,32}_t)
     {
       got_error = true;
       err_sstr << __func__ << "::size mimatch::expected " << sizeof(TYPE)*R*C << "B with each element " << sizeof(TYPE) << "B ::got " << size.__pos << "B\n";

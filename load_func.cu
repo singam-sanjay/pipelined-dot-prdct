@@ -31,24 +31,28 @@ void ld__frm_file_to_CPU( const char * dataset )
   #undef ld_cpu_MACRO
 }
 
-void __cudaMemcpy_wrapper( TYPE* dest, TYPE *src, int num_bytes, enum cudaMemcpyKind kind );
-
-void __ld_CPU_to_GPU( TYPE* d_vec, TYPE* vec, size_t bytes, const char* var_name, const char* d_var_name )
+void __cudaMemcpy_wrapper( TYPE* &dest, TYPE *&src, int num_bytes, enum cudaMemcpyKind kind, const char *caller_func_name, const char *dest_name, const char *src_name )
 {
-	cudaError_t stat;
-	stat = cudaMemcpy( d_vec, vec, bytes, cudaMemcpyHostToDevice  );
-	if( stat==cudaSuccess )
-	{
+  static cudaError_t stat;
+  stat = cudaMemcpy( dest, src, num_bytes, kind );
+  if( stat==cudaSuccess )
+  {
     return;
   }
-	err_sstr << "ld__frm_CPU_to_GPU::" << var_name << "->" << d_var_name << "::";
+  err_sstr << caller_func_name << "::" << src_name << "->" << dest_name << "::";
   switch( stat )
   {
-    case cudaErrorInvalidValue : err_sstr << "parameters passed to the API call is not within an acceptable range of values.\n";break;
-    case cudaErrorInvalidDevicePointer : err_sstr << "at least one device pointer passed to the API call is not a valid device pointer\n";break;
+    case cudaErrorInvalidValue             : err_sstr << "parameters passed to the API call is not within an acceptable range of values.\n";break;
+    case cudaErrorInvalidDevicePointer     : err_sstr << "at least one device pointer passed to the API call is not a valid device pointer\n";break;
     case cudaErrorInvalidMemcpyDirection 	 : err_sstr << "direction of the memcpy passed to the API call is not one of the types specified by cudaMemcpyKind\n";break;
+    default                                : err_sstr << "Unknown error.\n";break;
   }
   throw_str_excptn();
+}
+
+void __ld_CPU_to_GPU( TYPE* d_vec, TYPE* vec, int bytes, const char* var_name, const char* d_var_name )
+{
+  __cudaMemcpy_wrapper( d_vec, vec, bytes, cudaMemcpyHostToDevice, "ld__frm_CPU_to_GPU", d_var_name, var_name );
 }
 
 void ld__frm_CPU_to_GPU()
@@ -61,39 +65,13 @@ void ld__frm_CPU_to_GPU()
 
 void rp__frm_rplca_to_wrkspc_on_GPU()
 {
-  cudaError_t status;
-  status = cudaMemcpy(gpu_wrk_mat,gpu_rep_mat,k*N,cudaMemcpyDeviceToDevice);
-  if( status==cudaSuccess )
-  {
-    return;
-  }
-  err_sstr << __func__ << "::" ;
-  switch( status )
-  {
-    case cudaErrorInvalidValue : err_sstr << "parameters passed to the API call is not within an acceptable range of values.\n";break;
-    case cudaErrorInvalidDevicePointer : err_sstr << "at least one device pointer passed to the API call is not a valid device pointer\n";break;
-    case cudaErrorInvalidMemcpyDirection 	 : err_sstr << "direction of the memcpy passed to the API call is not one of the types specified by cudaMemcpyKind\n";break;
-  }
-  throw_str_excptn();
+  __cudaMemcpy_wrapper( gpu_wrk_mat, gpu_rep_mat, k*N, cudaMemcpyDeviceToDevice, __func__, "gpu_rep_mat", "gpu_wrk_mat");
 }
 
 #ifdef DEBUG
 void wb__to_CPU_frm_GPU()
 {
-  cudaError_t status;
-  status = cudaMemcpy(cpu_res,gpu_res,k,cudaMemcpyDeviceToHost);
-  if( status==cudaSuccess )
-  {
-    return;
-  }
-  err_sstr << __func__ << "::" ;
-  switch( status )
-  {
-    case cudaErrorInvalidValue : err_sstr << "parameters passed to the API call is not within an acceptable range of values.\n";break;
-    case cudaErrorInvalidDevicePointer : err_sstr << "at least one device pointer passed to the API call is not a valid device pointer\n";break;
-    case cudaErrorInvalidMemcpyDirection 	 : err_sstr << "direction of the memcpy passed to the API call is not one of the types specified by cudaMemcpyKind\n";break;
-  }
-  throw_str_excptn();
+  __cudaMemcpy_wrapper( cpu_res, gpu_res, k, cudaMemcpyDeviceToHost, __func__, "gpu_res", "cpu_res" );
 }
 
 void wb__to_file_frm_CPU( const char *results )
