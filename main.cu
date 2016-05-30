@@ -53,7 +53,7 @@ int main(int argc, char *argv[] )
 			#ifdef DEBUG
 			wb__to_CPU_frm_GPU();
 			char res_file[strlen(files[f_iter])+4];
-			sprintf(res_file,"res_%s",files[f_iter]);
+			sprintf(res_file,"%s/res_%s",dirname(files[f_iter]),basename(files[f_iter]));
 			wb__to_file_frm_CPU(res_file);
 			#endif
 		}
