@@ -17,6 +17,7 @@ int main(int argc, char *argv[] )
 	try
 	{
 		verify_cmdln_args( files, num_files );
+		cuda_set_device( 0 );
 	}
 	catch(string _err_str)
 	{

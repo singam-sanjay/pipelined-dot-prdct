@@ -15,19 +15,37 @@ void cmdln_usage_help()
           "C (int)(>1) indicates the dimension of the vectors.\n";
 }
 
-
+void cuda_set_device( int dev_num )
+{
+  cudaError_t stat;
+  stat = cudaSetDevice( dev_num );
+  if( stat==cudaSuccess )
+  {
+    return;
+  }
+  err_sstr << __func__ << "::";
+  switch( stat )
+  {
+    case cudaErrorInvalidDevice      : err_sstr << "Invalid device ordinal.\n";break;
+    case cudaErrorSetOnActiveProcess : err_sstr << "cudaErrorSetOnActiveProcess\n";break;
+    default                          : err_sstr << "Unknown error.\n";break;
+  }
+  throw_str_excptn();
+}
 #include <cstdio>
+#include <libgen.h>
 
-bool extract_RandC_from_fname( const char *f_name, int *ptr_R, int *ptr_C )
+bool extract_RandC_from_fname( char *f_name, int *ptr_R, int *ptr_C )
 {
   int R,C;
-  if( sscanf(f_name,"full_%ix%i.bin",&R,&C)!=2 || sscanf(f_name,"sp_%ix%i.bin",&R,&C)!=2 )
+  const char *base_name = basename(f_name);
+  if( (sscanf(base_name,"full_%ix%i.bin",&R,&C)==2) || (sscanf(base_name,"sp_%ix%i.bin",&R,&C)==2) )
   {
-    return false;
+    *ptr_R = R;
+    *ptr_C = C;
+    return true;
   }
-  *ptr_R = R;
-  *ptr_C = C;
-  return true;
+  return false;
 }
 
 void verify_cmdln_args( char *files[], const int num_files )
