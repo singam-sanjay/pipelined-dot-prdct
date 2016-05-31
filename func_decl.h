@@ -30,7 +30,7 @@ void cub_wrapup();
 
 /* Math helper functions */
 
-void setup_math_func_env();
+void setup_cuBLAS_func_env();
 
 /* Math functions */
 

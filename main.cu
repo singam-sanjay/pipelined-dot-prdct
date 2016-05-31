@@ -40,6 +40,18 @@ int main(int argc, char *argv[] )
 		goto _mem_wrapup_;
 	}
 
+	try
+	{
+		setup_cuBLAS_func_env();
+	}
+	catch( string _err_str )
+	{
+		status = EXIT_FAILURE;
+		cerr << _err_str;
+		rst_err_sstr();
+		goto _cub_wrapup_;
+	}
+
 	for( int f_iter=0 ; f_iter<num_files ; ++f_iter )
 	{
 		try
@@ -49,6 +61,8 @@ int main(int argc, char *argv[] )
 			ld__frm_file_to_CPU(files[f_iter]);
 			ld__frm_CPU_to_GPU();
 			/* Math functions */
+			rp__frm_rplca_to_wrkspc_on_GPU();
+			seq();
 			/* Optinal write back of results for verification */
 			#ifdef DEBUG
 			wb__to_CPU_frm_GPU();
