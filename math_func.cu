@@ -79,7 +79,7 @@ void par_OpenMP()
   }
 }
 
-__device__ void dyn_par_kernel( cublasHandle_t handle, int N, TYPE *gpu_addr_alpha, TYPE *gpu_vec, TYPE *gpu_wrk_mat, TYPE *gpu_res )
+__global__ void dyn_par_kernel( cublasHandle_t handle, int N, TYPE *gpu_addr_alpha, TYPE *gpu_vec, TYPE *gpu_wrk_mat, TYPE *gpu_res )
 {
   int row_num = blockIdx.x*THREADS_PER_BLOCK + threadIdx.x;
   if( row_num>=N )
@@ -106,7 +106,7 @@ __device__ void dyn_par_kernel( cublasHandle_t handle, int N, TYPE *gpu_addr_alp
 void par_dyn_parll()
 {
   #define NUMBER_OF_BLOCKS ( (k-1)/THREADS_PER_BLOCK + 1 )
-  dyn_par_kernel<<<NUMBER_OF_BLOCKS,THREADS_PER_BLOCK>>>(handle,N,gpu_addr_alpha,gpu_wrk_mat,gpu_res);
+  dyn_par_kernel<<<NUMBER_OF_BLOCKS,THREADS_PER_BLOCK>>>(handle,N,gpu_addr_alpha,gpu_vec,gpu_wrk_mat,gpu_res);
   cudaError_t err = cudaGetLastError();
   if( err!=cudaSuccess )
   {

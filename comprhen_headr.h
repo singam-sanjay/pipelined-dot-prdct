@@ -1,4 +1,6 @@
 #include <iostream>
+#include "cublas_v2.h"
+
 #include "env_decl.h"
 #include "var_decl.h"
 #include "func_decl.h"
