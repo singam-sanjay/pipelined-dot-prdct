@@ -27,6 +27,8 @@
 #define MAX_THREADS_PER_MP (2048)
 #define MAX_BLOCKS_PER_MP  (16)
 #define MAX_THREADS_PER_BLOCK (1024)
+#define THREADS_PER_BLOCK ( MAX_THREADS_PER_MP/MAX_BLOCKS_PER_MP ) // ( 128 )
+
 /*-----------------------------*/
 #ifdef __CUDA_ARCH__
 	#if __CUDA_ARCH__ == 350
