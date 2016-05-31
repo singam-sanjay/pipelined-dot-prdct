@@ -46,7 +46,13 @@ void seq()
     stat = cublasDaxpy( handle, N, gpu_addr_alpha, gpu_vec, 1, gpu_wrk_mat+N*row_num, 1 );
     if( stat!=CUBLAS_STATUS_SUCCESS )
     {
-      err_sstr << __func__ << "::" << __cuBLAS_error_string(stat);
+      err_sstr << __func__ << "::cublasDaxpy::" << __cuBLAS_error_string(stat);
+      throw_str_excptn();
+    }
+    stat = cublasDnrm2( handle, N, gpu_wrk_mat+N*row_num, 1, gpu_res+row_num );
+    if( stat!=CUBLAS_STATUS_SUCCESS )
+    {
+      err_sstr << __func__ << "::cublasDnrm2::" << __cuBLAS_error_string(stat);
       throw_str_excptn();
     }
   }

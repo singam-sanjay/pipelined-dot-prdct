@@ -142,9 +142,16 @@ int main( int argc, char* argv[] )
   }
 
   register int iter;
+  register TYPE (*abs_f)(TYPE);
+  #if defined _TYPE_double_
+    abs_f = fabs;
+  #elif defined _TYPE_float_
+    abs_f = fabsf;
+  #endif
+
   for( iter=0 ; iter<R1 ; ++iter )
   {
-	  if( fabs(ip1[iter]-ip2[iter]) > 1.0e-12 )
+	  if( abs_f(ip1[iter]-ip2[iter]) > 1.0e-12 )
 	  {
 		  printf("Error @%i.\n",iter);
 		  close_all_f();
@@ -156,7 +163,4 @@ int main( int argc, char* argv[] )
   close_all_f();
   free_all_ip();
   return EXIT_SUCCESS;
-
-
-
 }
