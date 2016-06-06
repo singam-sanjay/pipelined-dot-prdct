@@ -36,5 +36,5 @@ void setup_cuBLAS_func_env();
 
 void seq();
 void par_OpenMP();
-void par_dyn_parll();
+//void par_dyn_parll();
 void pipelined();

@@ -78,7 +78,7 @@ void par_OpenMP()
     }
   }
 }
-
+/*
 __global__ void dyn_par_kernel( cublasHandle_t handle, int N, TYPE *gpu_addr_alpha, TYPE *gpu_vec, TYPE *gpu_wrk_mat, TYPE *gpu_res )
 {
   int row_num = blockIdx.x*THREADS_PER_BLOCK + threadIdx.x;
@@ -114,3 +114,4 @@ void par_dyn_parll()
     throw_str_excptn();
   }
 }
+*/
