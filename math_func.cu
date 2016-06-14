@@ -115,3 +115,97 @@ void par_dyn_parll()
   }
 }
 */
+
+__global__ void pipeline_kernel( int N, TYPE *gpu_mat, TYPE *gpu_res )
+{
+  extern __shared__ TYPE sw_cache[];
+  TYPE *src,*dest;
+  int c1,c2,lvl=0; // Perf chk : Try unsigned char lvl instead of int lvl to 1.reduce total size of registers
+  unsigned char class_of_thread = '\0';
+  if( threadIdx.x<N )
+  {
+    src = gpu_mat;
+    dest = sw_cache;
+    c1 = threadIdx.x;
+    //class_of_thread =
+  }
+  else
+  {
+    int N_lvl = N, prev_lvl_1st, curr_lvl_1st = 0, nxt_lvl_1st = N+1;
+    do
+    {
+      prev_lvl_1st = curr_lvl_1st;
+      curr_lvl_1st = nxt_lvl_1st;
+      N_lvl = (N_lvl/2) + (N_lvl%2); // N_lvl = ceil(N/2) = N/2 + N%2 = (N>>1) + N&1
+      /* Perf chk
+      1. Try
+        a. (N>>1) instead of (N/2)
+        b. (N&1) instead of (N%2)
+        c. ceil instead of all this arith magic
+      2. Use explicit temporary register "temp_int" , and see if  1.performance improves and  2.number of registers is reduced
+      */
+      nxt_lvl_1st = curr_lvl_1st + N_lvl;
+      ++lvl;
+    }while( threadIdx.x<nxt_lvl_1st );
+    c1 = prev_lvl_1st + ((threadIdx.x-curr_lvl_1st)*2);
+    // Perf chk :                                  ^^ try ((...blah...)<<1) instead of ((...blah...)*2)
+    if( (c1+1)<nxt_lvl_1st )
+    {
+      c2 = c1+1; //using c2 as c1+1 since avoiding 1.extra addition including reg access.  and  2.repetetive addition
+    }
+    else
+    {
+      c2 = blockDim.x-1; //assuming the last thread's __shared__ spot is a 'source of zeros', sw_cache[blockDim.x-1]==0, since right child doesn't exist.
+    }
+    /* Perf chk : avoid temp reg for c1+1
+    ++c1;
+    if( c1>=nxt_lvl_1st )
+    {
+      c2 = c1;
+    }else{...}
+    --c1;
+    */
+    src = sw_cache;
+    if( threadIdx.x == blockDim.x-1 )
+    {
+      dest = gpu_res;
+      sw_cache[threadIdx.x] = 0; //init 'source of zeros' only once to avoid 1.redundant writes  and  2.serialised writes to same memory bank
+      /* Perf chk
+      Instead of treating Intermediate Threads(IT) in the same way as reducing threads (by having the "source of zeros" in place of the missing right child),
+      Try treating them differently : 1 Big(#threads) Slow warp Vs 1 Smaller(#threads) warp + few threads diverege and execute simpler instructions
+      expected effect : slower run, because 1 Big warp and 1 Smaller warp would take the same time.
+      */
+      //class_of_thread =
+    }
+    else
+    {
+      dest = sw_cache;
+      //class_of_thread =
+    }
+  }
+
+  while(true)
+  {
+    __syncthreads();
+    switch(class_of_thread)
+    {
+      case 0:break;
+      case 1:break;
+      case 2:break;
+      case 3:break;
+    }
+    __syncthreads();
+    switch(class_of_thread)
+    {
+      case 0:break;
+      case 1:break;
+      case 2:break;
+      case 3:break;
+    }
+  }
+}
+
+void pipelined()
+{
+
+}
