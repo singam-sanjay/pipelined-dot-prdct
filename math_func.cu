@@ -184,24 +184,50 @@ __global__ void pipeline_kernel( int N, TYPE *gpu_mat, TYPE *gpu_res )
     }
   }
 
+  TYPE src1, src2;
   while(true)
   {
     __syncthreads();
-    switch(class_of_thread)
+    src1 = src[c1];
+    src2 = src[c2];
+    if( class_of_thread==1 )
     {
-      case 0:break;
-      case 1:break;
-      case 2:break;
-      case 3:break;
+      src1 -= src2;
+      src1 *= src1;
     }
+    else if( class_of_thread&2 )
+    {
+      src1 += src2;
+    }
+
     __syncthreads();
-    switch(class_of_thread)
+    if( class_of_thread&1 )
     {
-      case 0:break;
-      case 1:break;
-      case 2:break;
-      case 3:break;
+      dest[threadIdx.x] = src1;
     }
+    else if( class_of_thread==2 )
+    {
+      dest[iter] = src1;
+    }
+
+    ++iter;
+    if( iter==N )
+    {
+      class_of_thread = 0;
+    }
+    else if( iter==0 )
+    {
+      class_of_thread>>=2;
+    }
+    else if( !class_of_thread )
+    {
+      --wait;
+      if( !(wait) )
+      {
+        return;
+      }
+    }
+
   }
 }
 
