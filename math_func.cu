@@ -116,22 +116,33 @@ void par_dyn_parll()
 }
 */
 
-__global__ void pipeline_kernel( int N, TYPE *gpu_mat, TYPE *gpu_res )
+#define CLASS_LEAF (0b01)
+#define CLASS_ROOT (0b10)
+#define CLASS_INTM (0b11)
+#define is_CLASS_LEAF (class_of_thread==CLASS_LEAF)
+#define is_CLASS_ROOT (class_of_thread==CLASS_ROOT)
+#define have_2nd_MEM_OPRND (class_of_thread&2)
+#define save_to_SHRD_MEM (class_of_thread&1)
+#define save_to_GLBL_MEM (is_CLASS_ROOT)
+
+__global__ void pipeline_kernel( int N, int k, TYPE *gpu_mat, TYPE *gpu_res )
 {
   extern __shared__ TYPE sw_cache[];
-  TYPE *src,*dest;
-  int c1,c2,lvl=0; // Perf chk : Try unsigned char lvl instead of int lvl to 1.reduce total size of registers
+  TYPE *src1,*src2,op1,op2,*dest;
+  int c1,c2,lvl=0,max_lvl,wait; // Perf chk : Try unsigned char lvl instead of int lvl to 1.reduce total size of registers
   unsigned char class_of_thread = '\0';
   if( threadIdx.x<N )
   {
-    src = gpu_mat;
+    src1 = gpu_mat;
+    src2 = gpu_vec;
     dest = sw_cache;
-    c1 = threadIdx.x;
-    //class_of_thread =
+    c1 = c2 = threadIdx.x;
+    op2 = gpu_vec[c2]; //load the reference vector.
+    class_of_thread = CLASS_LEAF;
   }
   else
   {
-    int N_lvl = N, prev_lvl_1st, curr_lvl_1st = 0, nxt_lvl_1st = N+1;
+    int N_lvl = N, prev_lvl_1st, curr_lvl_1st = 0, nxt_lvl_1st = N;
     do
     {
       prev_lvl_1st = curr_lvl_1st;
@@ -146,7 +157,8 @@ __global__ void pipeline_kernel( int N, TYPE *gpu_mat, TYPE *gpu_res )
       */
       nxt_lvl_1st = curr_lvl_1st + N_lvl;
       ++lvl;
-    }while( threadIdx.x<nxt_lvl_1st );
+    }while( curr_lvl_1st>threadIdx.x || threadIdx.x>=nxt_lvl_1st) );//!(curr_lvl_1st<=threadIdx.x && threadIdx.x<nxt_lvl_1st)
+    //Perf chk :                     ^^ once the 1st cond fails, the 2nd immediately fails
     c1 = prev_lvl_1st + ((threadIdx.x-curr_lvl_1st)*2);
     // Perf chk :                                  ^^ try ((...blah...)<<1) instead of ((...blah...)*2)
     if( (c1+1)<nxt_lvl_1st )
@@ -165,53 +177,69 @@ __global__ void pipeline_kernel( int N, TYPE *gpu_mat, TYPE *gpu_res )
     }else{...}
     --c1;
     */
-    src = sw_cache;
+    src1 = src2 = sw_cache;
     if( threadIdx.x == blockDim.x-1 )
     {
       dest = gpu_res;
-      sw_cache[threadIdx.x] = 0; //init 'source of zeros' only once to avoid 1.redundant writes  and  2.serialised writes to same memory bank
+      sw_cache[threadIdx.x] = lvl;
       /* Perf chk
       Instead of treating Intermediate Threads(IT) in the same way as reducing threads (by having the "source of zeros" in place of the missing right child),
       Try treating them differently : 1 Big(#threads) Slow warp Vs 1 Smaller(#threads) warp + few threads diverege and execute simpler instructions
       expected effect : slower run, because 1 Big warp and 1 Smaller warp would take the same time.
       */
-      //class_of_thread =
+      class_of_thread = CLASS_ROOT;
     }
     else
     {
       dest = sw_cache;
-      //class_of_thread =
+      class_of_thread = CLASS_INTM;
     }
+    class_of_thread <<= 2;//These threads are idle, initially
   }
 
-  TYPE src1, src2;
+  iter -= lvl;
+  __syncthreads(); //waiting for max_lvl
+  max_lvl = sw_cache[blockDim.x-1];
+  wait = max_lvl-lvl;
+  if( threadIdx.x==blockDim.x-1)
+  {
+    sw_cache[threadIdx.x] = 0; //init 'source of zeros' only once to avoid 1.redundant writes  and  2.serialised writes to same memory bank
+    //The 1st __syncthreads in while would ensure this write be visible to all threads
+  }
+
+  /*Perf chk :
+  src1 += c1;//Eliminate repeated addition of offset in src1[c1]
+  src2 += c2;//Eliminate repeated addition of offset in src2[c2]*/
   while(true)
   {
     __syncthreads();
-    src1 = src[c1];
-    src2 = src[c2];
-    if( class_of_thread==1 )
+    op1 = src1[c1];
+    if( have_2nd_MEM_OPRND )
     {
-      src1 -= src2;
-      src1 *= src1;
+      op2 = src2[c2];
+      op1 += op2;
     }
-    else if( class_of_thread&2 )
+    else if( is_CLASS_LEAF )
     {
-      src1 += src2;
+      op1 -= op2;
+      op1 *= op1;
+      src1 += N;//Go to next vector
     }
+    /*Perf chk : exchange and observe if perf improvement
+      Possible reason : else if executed first, we could execute the other branch of the warp while one branch waits for data from shared memory*/
 
     __syncthreads();
-    if( class_of_thread&1 )
+    if( save_to_SHRD_MEM )
     {
-      dest[threadIdx.x] = src1;
+      dest[threadIdx.x] = op1;
     }
-    else if( class_of_thread==2 )
+    else if( save_to_GLBL_MEM )
     {
-      dest[iter] = src1;
+      dest[iter] = op1;
     }
 
     ++iter;
-    if( iter==N )
+    if( iter==k )
     {
       class_of_thread = 0;
     }
