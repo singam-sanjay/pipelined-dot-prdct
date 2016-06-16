@@ -125,11 +125,11 @@ void par_dyn_parll()
 #define save_to_SHRD_MEM (class_of_thread&1)
 #define save_to_GLBL_MEM (is_CLASS_ROOT)
 
-__global__ void pipeline_kernel( int N, int k, TYPE *gpu_mat, TYPE *gpu_res )
+__global__ void pipeline_kernel( int N, int k, TYPE *gpu_vec, TYPE *gpu_mat, TYPE *gpu_res )
 {
   extern __shared__ TYPE sw_cache[];
   TYPE *src1,*src2,op1,op2,*dest;
-  int c1,c2,lvl=0,max_lvl,wait; // Perf chk : Try unsigned char lvl instead of int lvl to 1.reduce total size of registers
+  int iter,c1,c2,lvl=0,max_lvl,wait; // Perf chk : Try unsigned char lvl instead of int lvl to 1.reduce total size of registers
   unsigned char class_of_thread = '\0';
   if( threadIdx.x<N )
   {
@@ -157,8 +157,8 @@ __global__ void pipeline_kernel( int N, int k, TYPE *gpu_mat, TYPE *gpu_res )
       */
       nxt_lvl_1st = curr_lvl_1st + N_lvl;
       ++lvl;
-    }while( curr_lvl_1st>threadIdx.x || threadIdx.x>=nxt_lvl_1st) );//!(curr_lvl_1st<=threadIdx.x && threadIdx.x<nxt_lvl_1st)
-    //Perf chk :                     ^^ once the 1st cond fails, the 2nd immediately fails
+    }while( (curr_lvl_1st>threadIdx.x) || (threadIdx.x>=nxt_lvl_1st) );//!(curr_lvl_1st<=threadIdx.x && threadIdx.x<nxt_lvl_1st)
+    //Perf chk :                       ^^ once the 1st cond fails, the 2nd immediately fails
     c1 = prev_lvl_1st + ((threadIdx.x-curr_lvl_1st)*2);
     // Perf chk :                                  ^^ try ((...blah...)<<1) instead of ((...blah...)*2)
     if( (c1+1)<nxt_lvl_1st )
@@ -197,7 +197,7 @@ __global__ void pipeline_kernel( int N, int k, TYPE *gpu_mat, TYPE *gpu_res )
     class_of_thread <<= 2;//These threads are idle, initially
   }
 
-  iter -= lvl;
+  iter = -lvl;
   __syncthreads(); //waiting for max_lvl
   max_lvl = sw_cache[blockDim.x-1];
   wait = max_lvl-lvl;
