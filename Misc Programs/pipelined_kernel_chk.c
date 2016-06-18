@@ -51,7 +51,6 @@ void pipeline_kernel( int num_of_threadz )
   sw_cache = (double*)malloc( sizeof(TYPE)*num_of_threadz );
   //_syncthreads(); is replaced by #pragma omp barrier using 'sed'
   /* End of OpenMP stuff */
-  volatile int max_lvl;
 
   #pragma omp parallel
   {
@@ -60,7 +59,7 @@ void pipeline_kernel( int num_of_threadz )
     threadIdx.x = omp_get_thread_num();
     /* End of OpenMP stuff */
     TYPE *src1,*src2,op1,op2,*dest;
-    int iter,c1,c2,lvl=0,wait;
+    int iter,c1,c2,lvl=0,wait,max_lvl;
     unsigned char class_of_thread = '\0';
     if( threadIdx.x<N )
     {
