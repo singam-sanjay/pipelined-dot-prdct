@@ -82,7 +82,7 @@ void pipeline_kernel( int num_of_threadz )
         ++lvl;
       }while( (curr_lvl_1st>threadIdx.x) || (threadIdx.x>=nxt_lvl_1st) );//!(curr_lvl_1st<=threadIdx.x && threadIdx.x<nxt_lvl_1st)
       c1 = prev_lvl_1st + ((threadIdx.x-curr_lvl_1st)*2);
-      if( (c1+1)<nxt_lvl_1st )
+      if( (c1+1)<curr_lvl_1st )
       {
         c2 = c1+1; //using c2 as c1+1 since avoiding 1.extra addition including reg access.  and  2.repetetive addition
       }
@@ -134,7 +134,7 @@ void pipeline_kernel( int num_of_threadz )
         op1 *= op1;
         src1 += N;//Go to next vector
       }
-      /*DEBUGSTUFF*//*
+      /*DEBUGSTUFF*/
       printf("ID:%i iter:%i class:%i wait:%i op1:"FS_TYPE" op2:"FS_TYPE" res:"FS_TYPE"\n", threadIdx.x, iter, class_of_thread, wait, op1_save, op2, op1);fflush(stdout);
       __syncthreads();
       if( threadIdx.x==0 )
@@ -142,7 +142,7 @@ void pipeline_kernel( int num_of_threadz )
         static char chumma[10];
         printf("Waiting...");
         scanf("%s",chumma);
-      }*/
+      }
       /*/DEBUGSTUFF*/
       __syncthreads();
       if( save_to_SHRD_MEM )
