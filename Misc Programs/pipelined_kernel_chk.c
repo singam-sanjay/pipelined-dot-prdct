@@ -38,6 +38,7 @@ TYPE *vec, *mat, *res;
 #define is_ACTIVE (class_of_thread&3)
 #define just_became_ACTIVE (iter==0)
 #define IDLE_and_DONE (class_of_thread==0)
+#define wait_is_over (!(wait))
 /*/NEW STUFF */
 
 TYPE *sw_cache;
@@ -157,11 +158,7 @@ void pipeline_kernel( int num_of_threadz )
       ++iter;
       if( is_ACTIVE )//Changed control structure since active threads were going through all the conditions
       {
-        if( iter<k )
-        {
-          continue;
-        }
-        else // iter==k
+        if( iter==k )
         {
           class_of_thread = 0;
           //Idle threads keep accessing memory, to prevent that direct then to some safe source (that doesn't cost much)
@@ -176,7 +173,7 @@ void pipeline_kernel( int num_of_threadz )
       }
       else if( IDLE_and_DONE )
       {
-        if( !(wait) )
+        if( wait_is_over )
         {
           break;//This was return in the CUDA kernel, although can still be 'break' even in the CUDA code.
         }
