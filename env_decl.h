@@ -4,12 +4,12 @@
 
 #if defined _TYPE_double_
 	typedef double TYPE;
-	#define SCANF_FORMAT_STRING ("%lf")
+	#define SCANF_FORMAT_STRING "%lf"
 #elif defined _TYPE_float_
 	typedef float TYPE;
-	#define SCANF_FORMAT_STRING ("%f")
+	#define SCANF_FORMAT_STRING "%f"
 #endif
-#define PRINTF_FORMAT_STRING (SCANF_FORMAT_STRING)
+#define PRINTF_FORMAT_STRING SCANF_FORMAT_STRING
 
 //#if __cplusplus > 199711L // Make this work at a later time.
 	#define nullptr (NULL)
