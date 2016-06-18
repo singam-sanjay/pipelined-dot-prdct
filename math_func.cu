@@ -124,6 +124,10 @@ void par_dyn_parll()
 #define have_2nd_MEM_OPRND (class_of_thread&2)
 #define save_to_SHRD_MEM (class_of_thread&1)
 #define save_to_GLBL_MEM (is_CLASS_ROOT)
+#define is_ACTIVE (class_of_thread&3)
+#define just_became_ACTIVE (iter==0)
+#define IDLE_and_DONE (class_of_thread==0)
+#define wait_is_over (!(wait))
 
 __global__ void pipeline_kernel( int N, int k, TYPE *gpu_vec, TYPE *gpu_mat, TYPE *gpu_res )
 {
@@ -161,7 +165,7 @@ __global__ void pipeline_kernel( int N, int k, TYPE *gpu_vec, TYPE *gpu_mat, TYP
     //Perf chk :                       ^^ once the 1st cond fails, the 2nd immediately fails
     c1 = prev_lvl_1st + ((threadIdx.x-curr_lvl_1st)*2);
     // Perf chk :                                  ^^ try ((...blah...)<<1) instead of ((...blah...)*2)
-    if( (c1+1)<nxt_lvl_1st )
+    if( (c1+1)<curr_lvl_1st )
     {
       c2 = c1+1; //using c2 as c1+1 since avoiding 1.extra addition including reg access.  and  2.repetetive addition
     }
@@ -200,6 +204,7 @@ __global__ void pipeline_kernel( int N, int k, TYPE *gpu_vec, TYPE *gpu_mat, TYP
   iter = -lvl;
   __syncthreads(); //waiting for max_lvl
   max_lvl = sw_cache[blockDim.x-1];
+  __syncthreads(); //Waiting to for all to read max_lvl
   wait = max_lvl-lvl;
   if( threadIdx.x==blockDim.x-1)
   {
@@ -239,21 +244,28 @@ __global__ void pipeline_kernel( int N, int k, TYPE *gpu_vec, TYPE *gpu_mat, TYP
     }
 
     ++iter;
-    if( iter==k )
+    if( is_ACTIVE )//Changed control structure since active threads were going through all the conditions
     {
-      class_of_thread = 0;
+      if( iter==k )
+      {
+        class_of_thread = 0;
+        //Idle threads keep accessing memory, to prevent that direct then to some safe source (that doesn't cost much)
+        src1 = sw_cache;
+        // Now all Idle threads would be hitting the same location, so BROADCAST :)
+        c1 = blockDim.x-1;
+      }
     }
-    else if( iter==0 )
+    else if( just_became_ACTIVE )
     {
       class_of_thread>>=2;
     }
-    else if( !class_of_thread )
+    else if( IDLE_and_DONE )
     {
-      --wait;
-      if( !(wait) )
+      if( wait_is_over )
       {
-        return;
+        break;
       }
+      --wait; //tID==blockDim.x-1 doesn't have to wait at all
     }
 
   }
