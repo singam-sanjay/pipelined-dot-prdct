@@ -175,7 +175,8 @@ __global__ void print_gpu_mat_kern( TYPE* gpu_mat, int k, int N )
 
 void print_gpu_var(TYPE* gpu_mat, const char var_name[], int k, int N)
 {
-  printf("%s:",var_name);
+  printf("%s:\n",var_name);
 	print_gpu_mat_kern<<<1,1>>>(gpu_mat,k,N);
+  cudaDeviceSynchronize();
 }
 #endif

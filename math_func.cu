@@ -47,13 +47,18 @@ void seq()
   for( int row_num = 0 ; row_num<k ; ++row_num )
   {
     #ifdef DEBUG
+    //char var_name[] = "gpu_wrk_mat+N*row_num";
     stat = cublasDaxpy( handle, N, gpu_addr_alpha, gpu_vec, 1, gpu_wrk_mat+N*row_num, 1 );
     if( stat!=CUBLAS_STATUS_SUCCESS )
     {
       err_sstr << __func__ << "::cublasDaxpy::" << __cuBLAS_error_string(stat);
       throw_str_excptn();
     }
+    //sprintf(var_name,"gpu_wrk_mat+N*%i",row_num);
+    //print_gpu_var(gpu_wrk_mat+N*row_num,var_name,1,N);
     stat = cublasDnrm2( handle, N, gpu_wrk_mat+N*row_num, 1, gpu_res+row_num );
+    //sprintf(var_name,"gpu_res+%i",row_num);
+    //print_gpu_var(gpu_res+row_num,var_name,1,1);
     if( stat!=CUBLAS_STATUS_SUCCESS )
     {
       err_sstr << __func__ << "::cublasDnrm2::" << __cuBLAS_error_string(stat);
