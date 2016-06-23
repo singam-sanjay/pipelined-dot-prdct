@@ -12,7 +12,7 @@ void __ld_data_frm_binfile( const char *file_name, size_t offset, const char *va
       throw_str_excptn();
     }
     f.exceptions( std::ifstream::failbit | std::ifstream::badbit | std::ifstream::eofbit );
-    f.seekg( offset, std::ios_base::beg );
+    f.seekg( offset*sizeof(TYPE), std::ios_base::beg );
     f.read( (char*)ptr, sizeof(TYPE)*num );
     f.close();
   }

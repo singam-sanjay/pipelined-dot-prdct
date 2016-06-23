@@ -143,17 +143,19 @@ void cub_wrapup()
 }
 
 #ifdef DEBUG
-void print_cpu_var(TYPE* cpu_mat, int k, int N)
+void print_cpu_var(TYPE* cpu_mat, const char var_name[], int k, int N)
 {
   int i,j;
+  fprintf(stderr,"%s:\n",var_name);
   for( i=0 ; i<k ; ++i )
   {
     for( j=0 ; j<N ; ++j )
     {
-      printf(PRINTF_FORMAT_STRING" ",cpu_mat[j]);
+      fprintf(stderr,PRINTF_FORMAT_STRING" ",cpu_mat[j]);
     }
     printf("\n");cpu_mat += N;
   }
+  fflush(stderr);
 }
 
 __global__ void print_gpu_mat_kern( TYPE* gpu_mat, int k, int N )
@@ -161,7 +163,7 @@ __global__ void print_gpu_mat_kern( TYPE* gpu_mat, int k, int N )
 	if( blockIdx.x!=0 || threadIdx.x!=0 )
 	return;
 	int i,j;
-	for( i=0 ; i<k ; ++i )
+  for( i=0 ; i<k ; ++i )
 	{
 		for( j=0 ; j<N ; ++j )
 		{
@@ -171,8 +173,9 @@ __global__ void print_gpu_mat_kern( TYPE* gpu_mat, int k, int N )
 	}
 }
 
-void print_gpu_var(TYPE* gpu_mat, int k, int N)
+void print_gpu_var(TYPE* gpu_mat, const char var_name[], int k, int N)
 {
-  print_gpu_mat_kern<<<1,1>>>(gpu_mat,k,N);
+  printf("%s:",var_name);
+	print_gpu_mat_kern<<<1,1>>>(gpu_mat,k,N);
 }
 #endif
