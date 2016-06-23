@@ -251,7 +251,7 @@ __global__ void pipeline_kernel( int N, int k, TYPE *gpu_vec, TYPE *gpu_mat, TYP
     }
     else if( save_to_GLBL_MEM )
     {
-      dest[iter] = op1;
+      dest[iter] = sqrt(op1);
     }
 
     ++iter;
