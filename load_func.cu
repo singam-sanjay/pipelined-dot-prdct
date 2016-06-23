@@ -37,6 +37,9 @@ void __cudaMemcpy_wrapper( TYPE* &dest, TYPE *&src, int num_bytes, enum cudaMemc
   stat = cudaMemcpy( dest, src, num_bytes, kind );
   if( stat==cudaSuccess )
   {
+    #ifdef DEBUG
+    std::cerr << caller_func_name << ":(" << num_bytes << "B)" << src_name << "->" << dest_name << std::endl;
+    #endif
     return;
   }
   err_sstr << caller_func_name << "::" << src_name << "->" << dest_name << "::";
@@ -58,20 +61,20 @@ void __ld_CPU_to_GPU( TYPE* d_vec, TYPE* vec, int bytes, const char* var_name, c
 void ld__frm_CPU_to_GPU()
 {
   #define ld_GPU_dat_MACRO( d_var,var,bytes ) { __ld_CPU_to_GPU( d_var,var,bytes,#var,#d_var ); }
-  ld_GPU_dat_MACRO( gpu_vec,cpu_vec,N );
-  ld_GPU_dat_MACRO( gpu_rep_mat,cpu_mat,(k*N) );
+  ld_GPU_dat_MACRO( gpu_vec,cpu_vec,sizeof(TYPE)*N );
+  ld_GPU_dat_MACRO( gpu_rep_mat,cpu_mat,(sizeof(TYPE)*k*N) );
   #undef ld_GPU_dat_MACRO
 }
 
 void rp__frm_rplca_to_wrkspc_on_GPU()
 {
-  __cudaMemcpy_wrapper( gpu_wrk_mat, gpu_rep_mat, k*N, cudaMemcpyDeviceToDevice, __func__, "gpu_rep_mat", "gpu_wrk_mat");
+  __cudaMemcpy_wrapper( gpu_wrk_mat, gpu_rep_mat, sizeof(TYPE)*k*N, cudaMemcpyDeviceToDevice, __func__, "gpu_wrk_mat", "gpu_rep_mat");
 }
 
 #ifdef DEBUG
 void wb__to_CPU_frm_GPU()
 {
-  __cudaMemcpy_wrapper( cpu_res, gpu_res, k, cudaMemcpyDeviceToHost, __func__, "gpu_res", "cpu_res" );
+  __cudaMemcpy_wrapper( cpu_res, gpu_res, sizeof(TYPE)*k, cudaMemcpyDeviceToHost, __func__, "cpu_res", "gpu_res" );
 }
 
 void wb__to_file_frm_CPU( const char *results )

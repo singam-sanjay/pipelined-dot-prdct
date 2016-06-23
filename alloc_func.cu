@@ -15,6 +15,9 @@ TYPE* handled_new( size_t bytes, const char *var_name, int line )
 		throw_str_excptn(); // Immediately raise an exception as soon as we're unable to allocate memory,
                         // since the program cannot progress without required memory.
 	}
+	#ifdef DEBUG
+	std::cerr << "new " << var_name << ':' << bytes << "B" << std::endl;
+	#endif
 	return ptr;
 }
 
@@ -33,6 +36,9 @@ bool handled_delete( TYPE *loc, const char *var_name, int line )
     return true;
     // Do not raise an exception even if delete fails, since the program is now given a chance to free other allocations
 	}
+	#ifdef DEBUG
+	std::cerr << "del " << var_name << std::endl;
+	#endif
   return false;
 }
 
@@ -71,6 +77,9 @@ TYPE* handled_cudaMalloc( size_t bytes, const char* var_name, int line )
 		default: err_sstr << "alloc_mem_GPU()::" << line << "::Unknown error while allocating " << var_name << ".\n";
 			 			throw_str_excptn();
 	}
+	#ifdef DEBUG
+	std::cerr << "cudaMalloc " << var_name << ':' << bytes << "B" << std::endl;
+	#endif
 	return d_ptr;
 }
 
@@ -86,6 +95,9 @@ bool handled_cudaFree( TYPE* d_ptr, const char* var_name, int line )
 		default : err_sstr << "free_mem_GPU()::" << line << "::Unknown error while freeing " << var_name << ".\n";
 							return true;
 	}
+	#ifdef DEBUG
+	std::cerr << "cudaFree " << var_name << std::endl;
+	#endif
 	return false;
 }
 

@@ -40,9 +40,13 @@ void setup_cuBLAS_func_env()
 
 void seq()
 {
+  #if DEBUG
   cublasStatus_t stat;
+  std::cerr << __func__ << "()" << std::endl;
+  #endif
   for( int row_num = 0 ; row_num<k ; ++row_num )
   {
+    #ifdef DEBUG
     stat = cublasDaxpy( handle, N, gpu_addr_alpha, gpu_vec, 1, gpu_wrk_mat+N*row_num, 1 );
     if( stat!=CUBLAS_STATUS_SUCCESS )
     {
@@ -55,7 +59,14 @@ void seq()
       err_sstr << __func__ << "::cublasDnrm2::" << __cuBLAS_error_string(stat);
       throw_str_excptn();
     }
+    #else
+    (void)cublasDaxpy( handle, N, gpu_addr_alpha, gpu_vec, 1, gpu_wrk_mat+N*row_num, 1 );
+    (void)cublasDnrm2( handle, N, gpu_wrk_mat+N*row_num, 1, gpu_res+row_num );
+    #endif
   }
+  #ifdef DEBUG
+  std::cerr << "completed" << __func__ << "()" << std::endl;
+  #endif
 }
 
 void par_OpenMP()
@@ -269,6 +280,17 @@ __global__ void pipeline_kernel( int N, int k, TYPE *gpu_vec, TYPE *gpu_mat, TYP
     }
 
   }
+}
+
+int num_threads_in_tree(int N)
+{
+  int sum = N;
+  do
+  {
+    N = (N>>1) + (N&1);
+    sum += N;
+  }while(N>1);
+  return sum;
 }
 
 void pipelined()

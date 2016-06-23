@@ -141,3 +141,38 @@ void cub_wrapup()
 	 }
 	 throw_str_excptn();
 }
+
+#ifdef DEBUG
+void print_cpu_var(TYPE* cpu_mat, int k, int N)
+{
+  int i,j;
+  for( i=0 ; i<k ; ++i )
+  {
+    for( j=0 ; j<N ; ++j )
+    {
+      printf(PRINTF_FORMAT_STRING" ",cpu_mat[j]);
+    }
+    printf("\n");cpu_mat += N;
+  }
+}
+
+__global__ void print_gpu_mat_kern( TYPE* gpu_mat, int k, int N )
+{
+	if( blockIdx.x!=0 || threadIdx.x!=0 )
+	return;
+	int i,j;
+	for( i=0 ; i<k ; ++i )
+	{
+		for( j=0 ; j<N ; ++j )
+		{
+			printf(PRINTF_FORMAT_STRING" ",gpu_mat[j]);
+		}
+		printf("\n");gpu_mat += N;
+	}
+}
+
+void print_gpu_var(TYPE* gpu_mat, int k, int N)
+{
+  print_gpu_mat_kern<<<1,1>>>(gpu_mat,k,N);
+}
+#endif

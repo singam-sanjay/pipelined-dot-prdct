@@ -59,10 +59,14 @@ int main(int argc, char *argv[] )
 			extract_RandC_from_fname(files[f_iter],&k,&N);
 			k = k-1;// Need to exclude 'feature' vector
 			ld__frm_file_to_CPU(files[f_iter]);
+			print_cpu_var(cpu_mat,k,N);
+			print_cpu_var(cpu_vec,1,N);
 			ld__frm_CPU_to_GPU();
 			/* Math functions */
 			rp__frm_rplca_to_wrkspc_on_GPU();
+			print_gpu_var(gpu_wrk_mat,k,N);
 			seq();
+			print_gpu_var(gpu_res,1,k);
 			/* Optinal write back of results for verification */
 			#ifdef DEBUG
 			wb__to_CPU_frm_GPU();

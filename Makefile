@@ -5,4 +5,4 @@ main.cu: comprhen_headr.h
 ./prgm: main.cu
 	nvcc -lcublas main.cu -Xcompiler "-Wall -O3 -fopenmp" -o prgm
 ./prgm-DEBUG: main.cu
-	nvcc -DDEBUG -lcublas -g main.cu -Xcompiler "-Wall -g -fopenmp" -o prgm
+	nvcc -DDEBUG -lcublas -g main.cu -Xcompiler "-Wall -g -fopenmp" -o prgm-DEBUG
