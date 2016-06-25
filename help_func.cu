@@ -104,6 +104,76 @@ clse:fclose(f);
   }
 }
 
+void cudaEventInit()
+{
+  cudaError_t stat;
+  stat = cudaEventCreate(&start);
+  if( stat!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(stat) << ":failed creating cudaEvent_t start\n";
+    throw_str_excptn();
+  }
+  stat = cudaEventCreate(&stop);
+  if( stat!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(stat) << ":failed creating cudaEvent_t stop\n";
+    throw_str_excptn();
+  }
+}
+
+void tick(const char __func[])
+{
+  static cudaError_t stat;
+  stat = cudaEventRecord(start,0);
+  if( stat!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(stat) << ": failed to start timer in " << __func << '\n';
+    throw_str_excptn();
+  }
+}
+
+void tock(const char __func[])
+{
+  static cudaError_t stat;
+  static float time_elapsed;
+  stat = cudaEventRecord(stop,0);
+  if( stat!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(stat) << ": failed to stop timer in " << __func << '\n';
+    throw_str_excptn();
+  }
+  stat = cudaEventSynchronize(stop);
+  if( stat!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(stat) << ": failed to synchronise timer in " << __func << '\n';
+    throw_str_excptn();
+  }
+  stat = cudaEventElapsedTime(&time_elapsed,start,stop);
+  if( stat!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(stat) << ": failed to measure time in " << __func << '\n';
+    throw_str_excptn();
+  }
+  std::cout << __func << ' ' << time_elapsed << "ms\n";
+}
+
+void cudaEventDest()
+{
+  cudaError_t stat;
+  stat = cudaEventDestroy(start);
+  if( stat!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(stat) << ":failed creating cudaEvent_t start\n";
+    throw_str_excptn();
+  }
+  stat = cudaEventDestroy(stop);
+  if( stat!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(stat) << ":failed creating cudaEvent_t stop\n";
+    throw_str_excptn();
+  }
+}
+
 #include "cublas_v2.h"
 void cub_init()
 {

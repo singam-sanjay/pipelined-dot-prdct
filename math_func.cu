@@ -44,6 +44,7 @@ void seq()
   cublasStatus_t stat;
   std::cerr << __func__ << "()" << std::endl;
   #endif
+  tick(__func__);
   for( int row_num = 0 ; row_num<k ; ++row_num )
   {
     #ifdef DEBUG
@@ -69,6 +70,7 @@ void seq()
     (void)cublasDnrm2( handle, N, gpu_wrk_mat+N*row_num, 1, gpu_res+row_num );
     #endif
   }
+  tock(__func__);
   #ifdef DEBUG
   std::cerr << "completed" << __func__ << "()" << std::endl;
   #endif
@@ -301,9 +303,11 @@ int num_threads_in_tree(int N)
 void pipelined()
 {
   int num_thrd = num_threads_in_tree(N);
+  tick(__func__);
   pipeline_kernel<<<1,num_thrd,num_thrd*sizeof(TYPE)>>>(N,k,gpu_vec,gpu_wrk_mat,gpu_res);
   if( cudaPeekAtLastError()!=cudaSuccess )
   {
     err_sstr << __func__ << ":" << cudaGetErrorString(cudaPeekAtLastError()) << '\n';
   }
+  tock(__func__);
 }

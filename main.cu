@@ -18,6 +18,7 @@ int main(int argc, char *argv[] )
 	{
 		verify_cmdln_args( files, num_files );
 		cuda_set_device( 7 );
+		cudaEventInit();
 	}
 	catch(string _err_str)
 	{
@@ -63,9 +64,9 @@ int main(int argc, char *argv[] )
 			//print_cpu_var(cpu_vec,"cpu_vec",1,N);
 			ld__frm_CPU_to_GPU();
 			/* Math functions */
-			//rp__frm_rplca_to_wrkspc_on_GPU();
+			rp__frm_rplca_to_wrkspc_on_GPU();
 			////print_gpu_var(gpu_wrk_mat,"gpu_wrk_mat",k,N);
-			//seq();
+			seq();
 			////print_gpu_var(gpu_res,"gpu_res",1,k);
 			rp__frm_rplca_to_wrkspc_on_GPU();
 			pipelined();
@@ -115,6 +116,18 @@ _mem_wrapup_:
 	try
 	{
 		free_mem_CPU();
+	}
+	catch( string err_str )
+	{
+		status = EXIT_FAILURE;
+		cerr << err_str;
+		rst_err_sstr();
+		status = EXIT_FAILURE;
+	}
+
+	try
+	{
+		cudaEventDest();
 	}
 	catch( string err_str )
 	{
