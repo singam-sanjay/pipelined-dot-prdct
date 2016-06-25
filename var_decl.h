@@ -24,3 +24,5 @@ TYPE *gpu_vec = nullptr,     // Vector on the GPU
      *gpu_wrk_mat = nullptr, // Matrix on the GPU, worked/operated upon
      *gpu_rep_mat = nullptr, // Matrix on the GPU, replica of cpu_mat, used to initialise gpu_wrk_mat before every operation
      *gpu_res = nullptr;     // Result on the GPU
+
+cudaEvent_t start, stop;
