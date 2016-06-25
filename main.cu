@@ -63,10 +63,12 @@ int main(int argc, char *argv[] )
 			//print_cpu_var(cpu_vec,"cpu_vec",1,N);
 			ld__frm_CPU_to_GPU();
 			/* Math functions */
+			//rp__frm_rplca_to_wrkspc_on_GPU();
+			////print_gpu_var(gpu_wrk_mat,"gpu_wrk_mat",k,N);
+			//seq();
+			////print_gpu_var(gpu_res,"gpu_res",1,k);
 			rp__frm_rplca_to_wrkspc_on_GPU();
-			//print_gpu_var(gpu_wrk_mat,"gpu_wrk_mat",k,N);
-			seq();
-			//print_gpu_var(gpu_res,"gpu_res",1,k);
+			pipelined();
 			/* Optinal write back of results for verification */
 			#ifdef DEBUG
 			wb__to_CPU_frm_GPU();

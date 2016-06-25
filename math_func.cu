@@ -300,5 +300,10 @@ int num_threads_in_tree(int N)
 
 void pipelined()
 {
-
+  int num_thrd = num_threads_in_tree(N);
+  pipeline_kernel<<<1,num_thrd,num_thrd*sizeof(TYPE)>>>(N,k,gpu_vec,gpu_wrk_mat,gpu_res);
+  if( cudaPeekAtLastError()!=cudaSuccess )
+  {
+    err_sstr << __func__ << ":" << cudaGetErrorString(cudaPeekAtLastError()) << '\n';
+  }
 }
