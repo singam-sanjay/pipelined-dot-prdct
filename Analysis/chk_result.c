@@ -121,7 +121,7 @@ int main( int argc, char* argv[] )
 
   FILE *f1,*f2;
   f1 = fopen(argv[1],"rb");
-  f2 = fopen(argv[1],"rb");
+  f2 = fopen(argv[2],"rb");
 
 
   TYPE *ip1,*ip2;
