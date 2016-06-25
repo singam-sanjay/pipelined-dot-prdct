@@ -57,6 +57,7 @@ int main(int argc, char *argv[] )
 	{
 		try
 		{
+			printf("%s\n",basename(files[f_iter]));
 			extract_RandC_from_fname(files[f_iter],&k,&N);
 			k = k-1;// Need to exclude 'feature' vector
 			ld__frm_file_to_CPU(files[f_iter]);
